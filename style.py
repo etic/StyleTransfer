@@ -29,7 +29,7 @@ def train(args):
         use_cuda = True
         dtype = torch.cuda.FloatTensor
         torch.cuda.set_device(args.gpu)
-        print "Current device: %d" %torch.cuda.current_device()
+        print("Current device: %d" %torch.cuda.current_device())
 
     # visualization of training controlled by flag
     visualize = (args.visualize != None)
@@ -191,7 +191,7 @@ def style_transfer(args):
         use_cuda = True
         dtype = torch.cuda.FloatTensor
         torch.cuda.set_device(args.gpu)
-        print "Current device: %d" %torch.cuda.current_device()
+        print("Current device: %d" %torch.cuda.current_device())
 
     # content image
     img_transform_512 = transforms.Compose([
@@ -235,10 +235,10 @@ def main():
 
     # command
     if (args.subcommand == "train"):
-        print "Training!"
+        print("Training!")
         train(args)
     elif (args.subcommand == "transfer"):
-        print "Style transfering!"
+        print("Style transfering!")
         style_transfer(args)
     else:
         print("invalid command")
