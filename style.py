@@ -24,6 +24,8 @@ CONTENT_WEIGHT = 1e0
 TV_WEIGHT = 1e-7
 
 def train(args):          
+    dtype = torch.FloatTensor
+    use_cuda = False
     # GPU enabling
     if (args.gpu != None):
         use_cuda = True
@@ -35,7 +37,7 @@ def train(args):
     visualize = (args.visualize != None)
     if (visualize):
         img_transform_512 = transforms.Compose([
-            transforms.Scale(512),                  # scale shortest side to image_size
+            transforms.Resize(512),                  # scale shortest side to image_size
             transforms.CenterCrop(512),             # crop center image_size out
             transforms.ToTensor(),                  # turn image from [0-255] to [0-1]
             utils.normalize_tensor_transform()      # normalize with ImageNet values
@@ -64,7 +66,7 @@ def train(args):
 
     # get training dataset
     dataset_transform = transforms.Compose([
-        transforms.Scale(IMAGE_SIZE),           # scale shortest side to image_size
+        transforms.Resize(IMAGE_SIZE),           # scale shortest side to image_size
         transforms.CenterCrop(IMAGE_SIZE),      # crop center image_size out
         transforms.ToTensor(),                  # turn image from [0-255] to [0-1]
         utils.normalize_tensor_transform()      # normalize with ImageNet values
@@ -117,20 +119,20 @@ def train(args):
             for j in range(4):
                 style_loss += loss_mse(y_hat_gram[j], style_gram[j][:img_batch_read])
             style_loss = STYLE_WEIGHT*style_loss
-            aggregate_style_loss += style_loss.data[0]
+            aggregate_style_loss += style_loss.item()
 
             # calculate content loss (h_relu_2_2)
             recon = y_c_features[1]      
             recon_hat = y_hat_features[1]
             content_loss = CONTENT_WEIGHT*loss_mse(recon_hat, recon)
-            aggregate_content_loss += content_loss.data[0]
+            aggregate_content_loss += content_loss.item()
 
             # calculate total variation regularization (anisotropic version)
             # https://www.wikiwand.com/en/Total_variation_denoising
             diff_i = torch.sum(torch.abs(y_hat[:, :, :, 1:] - y_hat[:, :, :, :-1]))
             diff_j = torch.sum(torch.abs(y_hat[:, :, 1:, :] - y_hat[:, :, :-1, :]))
             tv_loss = TV_WEIGHT*(diff_i + diff_j)
-            aggregate_tv_loss += tv_loss.data[0]
+            aggregate_tv_loss += tv_loss.item()
 
             # total loss
             total_loss = style_loss + content_loss + tv_loss
@@ -144,7 +146,7 @@ def train(args):
                 status = "{}  Epoch {}:  [{}/{}]  Batch:[{}]  agg_style: {:.6f}  agg_content: {:.6f}  agg_tv: {:.6f}  style: {:.6f}  content: {:.6f}  tv: {:.6f} ".format(
                                 time.ctime(), e + 1, img_count, len(train_dataset), batch_num+1,
                                 aggregate_style_loss/(batch_num+1.0), aggregate_content_loss/(batch_num+1.0), aggregate_tv_loss/(batch_num+1.0),
-                                style_loss.data[0], content_loss.data[0], tv_loss.data[0]
+                                style_loss.item(), content_loss.item(), tv_loss.item()
                             )
                 print(status)
 
@@ -158,15 +160,15 @@ def train(args):
 
                 outputTestImage_amber = image_transformer(testImage_amber).cpu()
                 amber_path = "visualization/%s/amber_%d_%05d.jpg" %(style_name, e+1, batch_num+1)
-                utils.save_image(amber_path, outputTestImage_amber.data[0])
+                utils.save_image(amber_path, outputTestImage_amber.item())
 
                 outputTestImage_dan = image_transformer(testImage_dan).cpu()
                 dan_path = "visualization/%s/dan_%d_%05d.jpg" %(style_name, e+1, batch_num+1)
-                utils.save_image(dan_path, outputTestImage_dan.data[0])
+                utils.save_image(dan_path, outputTestImage_dan.item())
 
                 outputTestImage_maine = image_transformer(testImage_maine).cpu()
                 maine_path = "visualization/%s/maine_%d_%05d.jpg" %(style_name, e+1, batch_num+1)
-                utils.save_image(maine_path, outputTestImage_maine.data[0])
+                utils.save_image(maine_path, outputTestImage_maine.item())
 
                 print("images saved")
                 image_transformer.train()
@@ -195,7 +197,7 @@ def style_transfer(args):
 
     # content image
     img_transform_512 = transforms.Compose([
-            transforms.Scale(512),                  # scale shortest side to image_size
+            transforms.Resize(512),                  # scale shortest side to image_size
             transforms.CenterCrop(512),             # crop center image_size out
             transforms.ToTensor(),                  # turn image from [0-255] to [0-1]
             utils.normalize_tensor_transform()      # normalize with ImageNet values
