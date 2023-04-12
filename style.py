@@ -23,14 +23,15 @@ STYLE_WEIGHT = 1e5
 CONTENT_WEIGHT = 1e0
 TV_WEIGHT = 1e-7
 
-def train(args):          
+def train(args):
+    device = torch.device('cpu')
     dtype = torch.FloatTensor
     use_cuda = False
     # GPU enabling
     if (args.gpu != None):
         use_cuda = True
+        device = torch.device('cuda')
         dtype = torch.cuda.FloatTensor
-        torch.cuda.set_device(args.gpu)
         print("Current device: %d" %torch.cuda.current_device())
 
     # visualization of training controlled by flag
@@ -45,24 +46,24 @@ def train(args):
 
         testImage_amber = utils.load_image("content_imgs/amber.jpg")
         testImage_amber = img_transform_512(testImage_amber)
-        testImage_amber = Variable(testImage_amber.repeat(1, 1, 1, 1), requires_grad=False).type(dtype)
+        testImage_amber = Variable(testImage_amber.repeat(1, 1, 1, 1), requires_grad=False).to(device).type(dtype)
 
         testImage_dan = utils.load_image("content_imgs/dan.jpg")
         testImage_dan = img_transform_512(testImage_dan)
-        testImage_dan = Variable(testImage_dan.repeat(1, 1, 1, 1), requires_grad=False).type(dtype)
+        testImage_dan = Variable(testImage_dan.repeat(1, 1, 1, 1), requires_grad=False).to(device).type(dtype)
 
         testImage_maine = utils.load_image("content_imgs/maine.jpg")
         testImage_maine = img_transform_512(testImage_maine)
-        testImage_maine = Variable(testImage_maine.repeat(1, 1, 1, 1), requires_grad=False).type(dtype)
+        testImage_maine = Variable(testImage_maine.repeat(1, 1, 1, 1), requires_grad=False).to(device).type(dtype)
 
     # define network
-    image_transformer = ImageTransformNet().type(dtype)
+    image_transformer = ImageTransformNet().to(device).type(dtype)
     optimizer = Adam(image_transformer.parameters(), LEARNING_RATE) 
 
     loss_mse = torch.nn.MSELoss()
 
     # load vgg network
-    vgg = Vgg16().type(dtype)
+    vgg = Vgg16().to(device).type(dtype)
 
     # get training dataset
     dataset_transform = transforms.Compose([
@@ -81,7 +82,7 @@ def train(args):
     ])
     style = utils.load_image(args.style_image)
     style = style_transform(style)
-    style = Variable(style.repeat(BATCH_SIZE, 1, 1, 1)).type(dtype)
+    style = Variable(style.repeat(BATCH_SIZE, 1, 1, 1)).to(device).type(dtype)
     style_name = os.path.split(args.style_image)[-1].split('.')[0]
 
     # calculate gram matrices for style feature layer maps we care about
@@ -106,7 +107,7 @@ def train(args):
             optimizer.zero_grad()
 
             # input batch to transformer network
-            x = Variable(x).type(dtype)
+            x = Variable(x).to(device).type(dtype)
             y_hat = image_transformer(x)
 
             # get vgg features
@@ -183,6 +184,16 @@ def train(args):
         os.makedirs("models")
     filename = "models/" + str(style_name) + "_" + str(time.ctime()).replace(' ', '_') + ".model"
     torch.save(image_transformer.state_dict(), filename)
+
+    torch.onnx.export(image_transformer,                              # model being run
+                  testImage_amber,                       # model dummy input (or a tuple for multiple inputs)
+                  "model.onnx",                  # where to save the model (can be a file or file-like object)
+                  export_params=True,                 # store the trained parameter weights inside the model file
+                  opset_version=9,                    # the ONNX version to export the model to
+                  do_constant_folding=True,           # whether to execute constant folding for optimization
+                  input_names = ['x'],                # the model's input names
+                  output_names = ['y']                # the model's output names
+                  )
     
     if use_cuda:
         image_transformer.cuda()
