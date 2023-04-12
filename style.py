@@ -187,8 +187,8 @@ def train(args):
     filename = "models/" + str(style_name) + "_" + str(time.ctime()).replace(' ', '_') + ".model"
     torch.save(image_transformer.state_dict(), filename)
 
-    torch.onnx.export(image_transformer.to(cpu_device).dtype(torch.FloatTensor),                              # model being run
-                  testImage_amber.to(cpu_device).dtype(torch.FloatTensor),                       # model dummy input (or a tuple for multiple inputs)
+    torch.onnx.export(image_transformer.to(cpu_device).type(torch.FloatTensor),                              # model being run
+                  testImage_amber.to(cpu_device).type(torch.FloatTensor),                       # model dummy input (or a tuple for multiple inputs)
                   "model.onnx",                  # where to save the model (can be a file or file-like object)
                   export_params=True,                 # store the trained parameter weights inside the model file
                   opset_version=9,                    # the ONNX version to export the model to
