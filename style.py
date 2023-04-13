@@ -151,7 +151,7 @@ def train(args):
                             )
                 print(status)
 
-            if ((batch_num + 1) % 1000 == 0) and (visualize):
+            if ((batch_num + 1) % 100 == 0) and (visualize):
                 image_transformer.eval()
 
                 if not os.path.exists("visualization"):
@@ -161,15 +161,15 @@ def train(args):
 
                 outputTestImage_amber = image_transformer(testImage_amber).cpu()
                 amber_path = "visualization/%s/amber_%d_%05d.jpg" %(style_name, e+1, batch_num+1)
-                utils.save_image(amber_path, outputTestImage_amber.detach())
+                utils.save_image(amber_path, outputTestImage_amber[0].detach())
 
                 outputTestImage_dan = image_transformer(testImage_dan).cpu()
                 dan_path = "visualization/%s/dan_%d_%05d.jpg" %(style_name, e+1, batch_num+1)
-                utils.save_image(dan_path, outputTestImage_dan.detach())
+                utils.save_image(dan_path, outputTestImage_dan[0].detach())
 
                 outputTestImage_maine = image_transformer(testImage_maine).cpu()
                 maine_path = "visualization/%s/maine_%d_%05d.jpg" %(style_name, e+1, batch_num+1)
-                utils.save_image(maine_path, outputTestImage_maine.detach())
+                utils.save_image(maine_path, outputTestImage_maine[0].detach())
 
                 print("images saved")
                 image_transformer.train()
