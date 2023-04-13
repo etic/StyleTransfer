@@ -151,7 +151,7 @@ def train(args):
                             )
                 print(status)
 
-            if ((batch_num + 1) % 100 == 0) and (visualize):
+            if ((batch_num + 1) % 1000 == 0) and (visualize):
                 image_transformer.eval()
 
                 if not os.path.exists("visualization"):
