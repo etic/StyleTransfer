@@ -161,15 +161,15 @@ def train(args):
 
                 outputTestImage_amber = image_transformer(testImage_amber).cpu()
                 amber_path = "visualization/%s/amber_%d_%05d.jpg" %(style_name, e+1, batch_num+1)
-                utils.save_image(amber_path, outputTestImage_amber.item())
+                utils.save_image(amber_path, outputTestImage_amber)
 
                 outputTestImage_dan = image_transformer(testImage_dan).cpu()
                 dan_path = "visualization/%s/dan_%d_%05d.jpg" %(style_name, e+1, batch_num+1)
-                utils.save_image(dan_path, outputTestImage_dan.item())
+                utils.save_image(dan_path, outputTestImage_dan)
 
                 outputTestImage_maine = image_transformer(testImage_maine).cpu()
                 maine_path = "visualization/%s/maine_%d_%05d.jpg" %(style_name, e+1, batch_num+1)
-                utils.save_image(maine_path, outputTestImage_maine.item())
+                utils.save_image(maine_path, outputTestImage_maine)
 
                 print("images saved")
                 image_transformer.train()
